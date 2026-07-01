@@ -35,10 +35,14 @@ public class NotificacionController {
     // ==========================================
     @Operation(summary = "Crear notificación", description = "Permite registrar y enviar una nueva notificación. Endpoint llamado internamente vía Feign.")
     @ApiResponse(responseCode = "201", description = "Notificación creada exitosamente")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Cuerpo de la carga útil con la información de la notificación")
-    @ExampleObject(
-        name = "Ejemplo de Notificación",
-        value = "{\n  \"destinatario\": \"cliente@paris.cl\",\n  \"asunto\": \"Confirmación de Compra\",\n  \"mensaje\": \"Tu pedido ha sido procesado con éxito.\"\n}"
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        description = "Cuerpo de la carga útil con la información de la notificación",
+        content = @io.swagger.v3.oas.annotations.media.Content(
+            examples = @ExampleObject(
+                name = "Ejemplo de Notificación",
+                value = "{\n  \"destinatario\": \"cliente@paris.cl\",\n  \"asunto\": \"Confirmación de Compra\",\n  \"mensaje\": \"Tu pedido ha sido procesado con éxito.\"\n}"
+            )
+        )
     )
     @PostMapping
     @PreAuthorize("isAuthenticated()") 
