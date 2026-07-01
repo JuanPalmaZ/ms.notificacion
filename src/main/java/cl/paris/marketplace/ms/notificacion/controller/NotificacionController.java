@@ -13,8 +13,15 @@ import cl.paris.marketplace.ms.notificacion.dto.NotificacionResponse;
 import cl.paris.marketplace.ms.notificacion.service.NotificacionService;
 import jakarta.validation.Valid;
 
+// Imports añadidos según la pauta
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/notificaciones")
+@Tag(name = "Notificaciones", description = "EndPoints para la gestión y envío de notificaciones del Marketplace")
 public class NotificacionController {
 
     private final NotificacionService notificacionService;
@@ -26,6 +33,13 @@ public class NotificacionController {
     // ==========================================
     // CREAR NOTIFICACIÓN (Llamado internamente por Feign desde Ventas o Tickets)
     // ==========================================
+    @Operation(summary = "Crear notificación", description = "Permite registrar y enviar una nueva notificación. Endpoint llamado internamente vía Feign.")
+    @ApiResponse(responseCode = "201", description = "Notificación creada exitosamente")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Cuerpo de la carga útil con la información de la notificación")
+    @ExampleObject(
+        name = "Ejemplo de Notificación",
+        value = "{\n  \"destinatario\": \"cliente@paris.cl\",\n  \"asunto\": \"Confirmación de Compra\",\n  \"mensaje\": \"Tu pedido ha sido procesado con éxito.\"\n}"
+    )
     @PostMapping
     @PreAuthorize("isAuthenticated()") 
     public ResponseEntity<NotificacionResponse> crearNotificacion(
@@ -38,6 +52,10 @@ public class NotificacionController {
     // ==========================================
     // BANDEJA DE ENTRADA SEGURA E INVISIBLE
     // ==========================================
+    @Operation(summary = "Obtener notificaciones del usuario", description = "Recupera el listado de notificaciones asociadas al usuario autenticado a través del Token.")
+    @ApiResponse(responseCode = "200", description = "Lista de notificaciones obtenida con éxito")
+    @ApiResponse(responseCode = "500", description = "Error Crítico: No se pudo extraer el correo electrónico del token.")
+    @ApiResponse(responseCode = "404", description = "No se encontraron notificaciones o error en el servicio")
     @GetMapping("/mis-notificaciones")
     @PreAuthorize("isAuthenticated()") // Cualquier usuario logueado puede revisar su propia bandeja
     public ResponseEntity<?> misNotificaciones(Authentication authentication) {
@@ -63,6 +81,8 @@ public class NotificacionController {
     // ==========================================
     // HISTORIAL GLOBAL (Solo ADMIN)
     // ==========================================
+    @Operation(summary = "Historial global de notificaciones", description = "Permite obtener el listado completo de todas las notificaciones del sistema. Restringido para rol ADMIN.")
+    @ApiResponse(responseCode = "200", description = "Historial global obtenido con éxito")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<NotificacionResponse>> listarTodas() {
