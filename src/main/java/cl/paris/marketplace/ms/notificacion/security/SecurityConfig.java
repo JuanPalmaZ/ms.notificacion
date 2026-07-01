@@ -8,40 +8,40 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+ 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // ¡ESTO ES VITAL! Permite usar @PreAuthorize en el Controller
+@EnableMethodSecurity // Permite aplicar restricciones con @PreAuthorize en las capas superiores
 public class SecurityConfig {
-
+ 
     private final JwtAuthenticationFilter jwtAuthFilter;
-
+ 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
     }
-
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth -> auth
-            // ¡ESTA LÍNEA ES VITAL EN SPRING SECURITY 6!
-            .requestMatchers("/error",
+ 
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(auth -> auth
+                // Se libera el acceso a Swagger y documentación
+                .requestMatchers("/error",
                                  "/v3/api-docs",
                                  "/v3/api-docs/**",
                                  "/swagger-ui/**",
                                  "/swagger-ui.html",
                                  "/doc/swagger-ui/**",
-                                 "/doc/swagger-ui.html/**").permitAll()  
-            
-            // Tus otras rutas permitidas si las hay (ej: /api/auth/**)
-            .anyRequest().authenticated()
-        )
-        .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        )
-        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-    return http.build();
-}
+                                 "/doc/swagger-ui.html/**").permitAll() 
+                // Absolutamente todas las demás peticiones a la administración requieren estar autenticadas
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            // Posicionamos el filtro JWT antes del filtro de usuario/contraseña estándar
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+ 
+        return http.build();
+    }
 }
